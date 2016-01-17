@@ -1,22 +1,13 @@
-module.exports = function mkMappedEventuate (eventuate, map) {
-    // create a new eventuate with the parent's setting
-    var mappedEventuate = eventuate.factory({ monitorConsumers: eventuate.hasConsumer !== undefined })
+var chainable       = require('eventuate-chainable'),
+    producerFactory = require('./lib/producer-factory')
 
-    // expose to external sources
-    mappedEventuate.upstreamConsumer = mapConsumer
+module.exports = eventuateMapFactory
+function eventuateMapFactory (Super) {
+    var EventuateMap = chainable(Super, producerFactory)
 
-    // destroy upstream consumer
-    mappedEventuate.unsubscribe = function mappedEventuateUnsubscribe () {
-        eventuate.removeConsumer(mapConsumer)
+    function eventuateMap (upstream, options, map) {
+        return new EventuateMap(upstream, options, map)
     }
-
-    // create new eventuate upstream consumer
-    eventuate(mapConsumer)
-
-    return mappedEventuate
-
-    function mapConsumer (data) {
-        // act on original producers payload, and emit(produce) event
-        mappedEventuate.produce(map(data))
-    }
+    eventuateMap.constructor = EventuateMap
+    return eventuateMap
 }
